@@ -40,7 +40,7 @@
 '''    
 
 import hashlib,struct,random,warnings,aes
-from itertools import cycle, izip
+import itertools
 warnings.filterwarnings("ignore")
 
 paddingString = '\x28\xBF\x4E\x5E\x4E\x75\x8A\x41\x64\x00\x4E\x56\xFF\xFA\x01\x08\x2E\x2E\x00\xB6\xD0\x68\x3E\x80\x2F\x0C\xA9\xFE\x64\x53\x69\x7A'
@@ -323,5 +323,5 @@ def xor(bytes, key):
         @param key: Key used for the operation, it's cycled.
         @return: The xored bytes
     '''
-    key = cycle(key)
-    return ''.join(chr(ord(x) ^ ord(y)) for (x,y) in izip(bytes, key))
+    key = itertools.cycle(key)
+    return ''.join(chr(ord(x) ^ ord(y)) for (x,y) in itertools.izip(bytes, key))

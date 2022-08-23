@@ -966,7 +966,7 @@ class PDFArray (PDFObject) :
                     self.unescapedBytes += element.getUnescapedBytes()
                     self.urlsFound += element.getURLs()
                 if element.isFaulty():
-                    for error in valueObject.getErrors():
+                    for error in element.getErrors():
                         self.addError('Children element contains errors: ' + error)
                 if type in ['string','hexstring','array','dictionary'] and self.encrypted and not decrypt:
                     ret = element.encrypt(self.encryptionKey)
@@ -1720,7 +1720,7 @@ class PDFStream (PDFDictionary) :
                 self.unescapedBytes = list(set(self.unescapedBytes + valueElement.getUnescapedBytes()))
                 self.urlsFound = list(set(self.urlsFound + valueElement.getURLs()))
             if valueElement.isFaulty():
-                for error in valueObject.getErrors():
+                for error in valueElement.getErrors():
                     self.addError('Children element contains errors: ' + error)
             if self.rawNames.has_key(keys[i]):
                 rawName = self.rawNames[keys[i]]
@@ -3942,7 +3942,7 @@ class PDFBody :
                 errorMessage = 'Bad indirect object found while encoding strings'
                 pdfFile.addError(errorMessage)
         if errorMessage != '':
-            return (-1,typeObject)
+            return (-1)
         return (0,'')
 
     def getCompressedObjects(self):
@@ -4726,7 +4726,7 @@ class PDFFile :
         compressedDict = {'/Type':PDFName('ObjStm'),'/N':PDFNum(str(numObjects)),'/First':PDFNum(firstObjectOffset),'/Length':PDFNum(str(len(compressedStream)))}
         try:
             objectStream = PDFObjectStream('',compressedStream,compressedDict,{},{})
-        except Exception,e:
+        except Exception as e:
             errorMessage = 'Error creating PDFObjectStream'
             if e.message != '':
                 errorMessage += ': '+e.message
@@ -4833,7 +4833,7 @@ class PDFFile :
         elementsDict['/Length'] = PDFNum(str(len(stream)))
         try:
             xrefStream = PDFStream('',stream,elementsDict,{})
-        except Exception,e:
+        except Exception as e:
             errorMessage = 'Error creating PDFStream'
             if e.message != '':
                 errorMessage += ': '+e.message
@@ -4851,7 +4851,7 @@ class PDFFile :
             self.addError(ret[1])
         try:
             trailerStream = PDFTrailer(PDFDictionary(elements=elementsTrailerDict))
-        except Exception,e:
+        except Exception as e:
             errorMessage = 'Error creating PDFTrailer'
             if e.message != '':
                 errorMessage += ': '+e.message
@@ -4860,7 +4860,7 @@ class PDFFile :
         trailerStream.setXrefStreamObject(xrefStreamId)
         try:
             trailerSection = PDFTrailer(PDFDictionary(elements=dict(elementsTrailerDict)))#PDFDictionary())
-        except Exception,e:
+        except Exception as e:
             errorMessage = 'Error creating PDFTrailer'
             if e.message != '':
                 errorMessage += ': '+e.message
@@ -6252,7 +6252,7 @@ class PDFFile :
             # JS stream (5)
             try:
                 jsStream = PDFStream(rawStream = content, elements = {'/Length':PDFNum(str(len(content)))})
-            except Exception,e:
+            except Exception as e:
                 errorMessage = 'Error creating PDFStream'
                 if e.message != '':
                     errorMessage += ': '+e.message
@@ -6659,10 +6659,10 @@ class PDFParser :
         file = open(fileName,'rb')
         for line in file:
             if versionLine == '':
-                pdfHeaderIndex = line.find('%PDF-')
-                psHeaderIndex = line.find('%!PS-Adobe-')
+                pdfHeaderIndex = line.find(b'%PDF-')
+                psHeaderIndex = line.find(b'%!PS-Adobe-')
                 if pdfHeaderIndex != -1 or psHeaderIndex != -1:
-                    index = line.find('\r')
+                    index = line.find(b'\r')
                     if index != -1 and index+1 < len(line) and line[index+1] != '\n':
                         index += 1
                         versionLine = line[:index]
@@ -6684,9 +6684,9 @@ class PDFParser :
         file.close()
         
         # Getting the specification version
-        versionLine = versionLine.replace('\r','')
-        versionLine = versionLine.replace('\n','')
-        matchVersion = re.findall('%(PDF-|!PS-Adobe-\d{1,2}\.\d{1,2}\sPDF-)(\d{1,2}\.\d{1,2})',versionLine)
+        versionLine = versionLine.replace(b'\r',b'')
+        versionLine = versionLine.replace(b'\n',b'')
+        matchVersion = re.findall(b'%(PDF-|!PS-Adobe-\d{1,2}\.\d{1,2}\sPDF-)(\d{1,2}\.\d{1,2})',versionLine)
         if matchVersion == []:
             if forceMode:
                 pdfFile.setVersion(versionLine)
@@ -6726,7 +6726,7 @@ class PDFParser :
         pdfFile.setSHA256(hashlib.sha256(fileContent).hexdigest())
         
         # Getting the number of updates in the file
-        while fileContent.find('%%EOF') != -1:
+        while fileContent.find(b'%%EOF') != -1:
             self.readUntilSymbol(fileContent, '%%EOF')
             self.readUntilEndOfLine(fileContent)
             self.fileParts.append(fileContent[:self.charCounter])
@@ -7052,7 +7052,7 @@ class PDFParser :
                 pdfObject = ret[1]
         try:
             pdfArray = PDFArray(rawContent, elements)
-        except Exception,e:
+        except Exception as e:
             errorMessage = 'Error creating PDFArray'
             if e.message != '':
                 errorMessage += ': '+e.message
@@ -7122,7 +7122,7 @@ class PDFParser :
                         return (-1, errorMessage)
         try:
             pdfDictionary = PDFDictionary(rawContent, elements, rawNames)
-        except Exception,e:
+        except Exception as e:
             errorMessage = 'Error creating PDFDictionary'
             if e.message != '':
                 errorMessage += ': '+e.message
@@ -7184,7 +7184,7 @@ class PDFParser :
         if elements.has_key('/Type') and elements['/Type'].getValue() == '/ObjStm':
             try:
                 pdfStream = PDFObjectStream(dict, stream, elements, rawNames, {})
-            except Exception,e:
+            except Exception as e:
                 errorMessage = 'Error creating PDFObjectStream'
                 if e.message != '':
                     errorMessage += ': '+e.message
@@ -7192,7 +7192,7 @@ class PDFParser :
         else:
             try:
                 pdfStream = PDFStream(dict, stream, elements, rawNames)
-            except Exception,e:
+            except Exception as e:
                 errorMessage = 'Error creating PDFStream'
                 if e.message != '':
                     errorMessage += ': '+e.message
@@ -7430,7 +7430,7 @@ class PDFParser :
         if ret[0] == -1:
             try:
                 trailer = PDFTrailer(dict, streamPresent = streamPresent)
-            except Exception,e:
+            except Exception as e:
                 errorMessage = 'Error creating PDFTrailer'
                 if e.message != '':
                     errorMessage += ': '+e.message
@@ -7447,7 +7447,7 @@ class PDFParser :
                 lastXrefSection = ret[1]
             try:
                 trailer = PDFTrailer(dict, lastXrefSection, streamPresent = streamPresent)
-            except Exception,e:
+            except Exception as e:
                 errorMessage = 'Error creating PDFTrailer'
                 if e.message != '':
                     errorMessage += ': '+e.message
@@ -7481,7 +7481,7 @@ class PDFParser :
                         dict[element] = xrefStreamObject.getElementByName(element)
                 try:
                     dict = PDFDictionary('',dict)
-                except Exception,e:
+                except Exception as e:
                     if isForceMode:
                         dict = None
                     else:
@@ -7510,7 +7510,7 @@ class PDFParser :
                         lastXrefSection = ret[1]
                 try:
                     trailer = PDFTrailer(dict, lastXrefSection)
-                except Exception,e:
+                except Exception as e:
                     errorMessage = 'Error creating PDFTrailer'
                     if e.message != '':
                         errorMessage += ': '+e.message

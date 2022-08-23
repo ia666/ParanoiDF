@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 #    ParanoiDF. A combination of several PDF analysis/manipulation tools to 
 #    produce one of the most technically useful PDF analysis tools.
 #    
@@ -35,15 +38,12 @@
 #
 #    This was written by Jose Miguel Esparza for the tool PeePDF. This has 
 #    been modified by Patrick Wragg 22/07/2014. 
-'''
-    Main launch script.
-'''
 
 import sys
 import os
 import optparse
 import re
-import urllib2
+import urllib3
 import datetime
 import hashlib
 import traceback
@@ -67,7 +67,7 @@ def getRepPaths(url, path = ''):
     dumbReFiles = '<li><a[^>]*?>([^/]*?)</a></li>'
     
     try:
-        browsingPage = urllib2.urlopen(url+path).read()
+        browsingPage = urllib3.urlopen(url+path).read()
     except:
         sys.exit('[x] Connection error while getting browsing page "'+url+path+'"')
     dirs = re.findall(dumbReDirs, browsingPage)
@@ -88,13 +88,13 @@ def getRepPaths(url, path = ''):
 
 def getLocalFilesInfo(filesList):
     localFilesInfo = {}
-    print '[-] Getting local files information...'
+    print('[-] Getting local files information...')
     for path in filesList:
         if os.path.exists(path):
             content = open(path,'rb').read()
             shaHash = hashlib.sha256(content).hexdigest()
             localFilesInfo[path] = shaHash
-    print '[+] Done'
+    print('[+] Done')
     return localFilesInfo
 
 def getPeepXML(statsDict, version, revision):
@@ -291,21 +291,24 @@ try:
         alertColor = ''
         staticColor = ''
         resetColor = ''
+    
     else:
         warningColor = Fore.YELLOW
         errorColor = Fore.RED
         alertColor = Fore.RED
         staticColor = Fore.BLUE
         resetColor = Style.RESET_ALL
+    
     if options.version:
-        print paranoiDFHeader
+        print(paranoiDFHeader)
           
     else:
+
         if len(args) == 1:
-		if not options.isFetchUrl:
-			fileName = args[0]
-           		if not os.path.exists(fileName):
-               			sys.exit('Error: The file "'+fileName+'" does not exist!!')
+            if not options.isFetchUrl:
+                fileName = args[0]
+            if not os.path.exists(fileName):
+                sys.exit('Error: The file "'+fileName+'" does not exist!!')
         elif len(args) > 1 or (len(args) == 0 and not options.isInteractive and not options.scriptFile):
             sys.exit(argsParser.print_help())
             
@@ -315,25 +318,26 @@ try:
 	  
 ##################################################################################################
 
-	if options.isFetchUrl: #Fetch PDF from URL using wget.
-            httpAddr = args[0]
-	    os.system('wget -r -A.pdf ' + httpAddr)
+    if options.isFetchUrl: #Fetch PDF from URL using wget.
+        httpAddr = args[0]
+        os.system('wget -r -A.pdf ' + httpAddr)
 
-	if options.isTextDisplay: #Use PDFminers 'pdf2txt.py' to parse and show text of PDF.
-	    pdfMinerDirCheck = dirCheck + '/pdfminer/'
-	    if not os.path.isdir(pdfMinerDirCheck):
-		print 'PdfMiner files not found, aborting.'
-		sys.exit()
-	    try:
-		file = open(dirCheck + '/pdf2txt.py')
-		file.close()
-		os.system('python ' + dirCheck + '/pdf2txt.py ' + fileName)
-	    except IOError:
-		print ''
-		print 'No pdf2txt.py script found, check source repository and re-download.'
-		print ''
-		sys.exit()
-	    sys.exit()	
+    if options.isTextDisplay: #Use PDFminers 'pdf2txt.py' to parse and show text of PDF.
+        pdfMinerDirCheck = dirCheck + '/pdfminer/'
+        if not os.path.isdir(pdfMinerDirCheck):
+            print('PdfMiner files not found, aborting.')
+            sys.exit()
+	    
+        try:
+            file = open(dirCheck + '/pdf2txt.py')
+            file.close()
+            os.system('python ' + dirCheck + '/pdf2txt.py ' + fileName)
+        
+        except IOError:
+            print('')
+            print('No pdf2txt.py script found, check source repository and re-download.')
+            print('')
+            sys.exit()
 		
 #################################################################################################
 
@@ -412,18 +416,18 @@ try:
                         if statsDict['Detection'] != []:
                             detectionReportInfo = ''
                             if statsDict['Detection'] != None:
-                                 detectionColor = ''
-                                 if COLORIZED_OUTPUT and not options.avoidColors:
-                                	 detectionLevel = statsDict['Detection'][0]/(statsDict['Detection'][1]/3)
-                                	 if detectionLevel == 0:
-                                	 	 detectionColor = alertColor
-                                	 elif detectionLevel == 1:
-                                	 	 detectionColor = warningColor  
-                                 detectionRate = '%s%d%s/%d' % (detectionColor, statsDict['Detection'][0], resetColor, statsDict['Detection'][1])
-                                 if statsDict['Detection report'] != '':
-                                     detectionReportInfo = beforeStaticLabel + 'Detection report: ' + resetColor + statsDict['Detection report'] + newLine
+                                detectionColor = ''
+                                if COLORIZED_OUTPUT and not options.avoidColors:
+                                    detectionLevel = statsDict['Detection'][0]/(statsDict['Detection'][1]/3)
+                                    if detectionLevel == 0:
+                                        detectionColor = alertColor
+                                    elif detectionLevel == 1:
+                                        detectionColor = warningColor  
+                                detectionRate = '%s%d%s/%d' % (detectionColor, statsDict['Detection'][0], resetColor, statsDict['Detection'][1])
+                                if statsDict['Detection report'] != '':
+                                    detectionReportInfo = beforeStaticLabel + 'Detection report: ' + resetColor + statsDict['Detection report'] + newLine
                             else:
-								 detectionRate = 'File not found on VirusTotal'
+                                detectionRate = 'File not found on VirusTotal'
                             stats += beforeStaticLabel + 'Detection: ' + resetColor + detectionRate + newLine
                             stats += detectionReportInfo
                     stats += beforeStaticLabel + 'Version: ' + resetColor + statsDict['Version'] + newLine
@@ -513,7 +517,7 @@ try:
                                 stats += '\t\t' + url + newLine
                         stats += newLine * 2
                 if fileName != None:
-                    print stats
+                    print(stats)
                 if options.isInteractive:
                     from PDFConsole import PDFConsole
                     console = PDFConsole(pdf, VT_KEY, options.avoidColors)
@@ -522,7 +526,7 @@ try:
                             console.cmdloop()
                         except:
                             errorMessage = '*** Error: Exception not handled using the interactive console!! Please, report it to the author!!\n\nTip: Try opening file using -f option.'
-                            print errorColor + errorMessage + resetColor + newLine
+                            print(errorColor + errorMessage + resetColor + newLine)
                             traceback.print_exc(file=open(errorsFile,'a'))
 
 except Exception as e:
@@ -533,7 +537,7 @@ except Exception as e:
     if excName == None or excName != 'PeepException':
         errorMessage = '*** Error: Exception not handled!!\n\nTip: Try analysing PDF using -f option.'
         traceback.print_exc(file=open(errorsFile,'a'))
-    print errorColor + errorMessage + resetColor + newLine
+    print(errorColor + errorMessage + resetColor + newLine)
 finally:
     if len(errorMessage) > 1:
         message = newLine + 'Please, don\'t forget to report the errors found:' + newLine*2 

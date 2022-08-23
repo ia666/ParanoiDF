@@ -55,15 +55,7 @@ with this program; if not, write to the Free Software Foundation, Inc.,
 '''
 import re
 import sys
-try:
-    from bs4 import BeautifulSoup
-except ImportError:
-    # BeautifulSoup 4.x not installed trying BeautifulSoup 3.x 
-    try:
-        from BeautifulSoup import BeautifulSoup
-    except ImportError:
-        print ('BeautifulSoup not installed')
-        exit(-1)
+from bs4 import BeautifulSoup
 
 class Parser:
     '''
@@ -84,7 +76,7 @@ class Parser:
             htmlrules = htmlparseconfig.splitlines()
         except:
             htmlrules = []
-            print 'Problem while parsing HTML parsing rules'
+            print('Problem while parsing HTML parsing rules')
 
         line = 0
         for htmlrule in htmlrules:
@@ -121,7 +113,7 @@ class Parser:
                         tag, value = field[1], ' '.join(field[2:])
                         self.html_filters[tag] = re.sub('^\s+|\s+$', '', value)
                 else:
-                    print 'fatal: invalid htmlparse.config line: %d' % line
+                    print('fatal: invalid htmlparse.config line: %d' % line)
 
         if self.debug:
             print ('done loading htmlparse, (%d parse_rules, %d definitions, '
@@ -260,9 +252,9 @@ def main():
             fout = open('%s.out' % infile, 'wb')
             fout.write(parsed)
             fout.close()
-            print 'Wrote %s.out (%d bytes)' % (infile, len(parsed))
+            print('Wrote %s.out (%d bytes)' % (infile, len(parsed)))
         else:
-            print 'Nothing parsed for %s' % infile
+            print('Nothing parsed for %s' % infile)
 
 if __name__ == '__main__':
     main()

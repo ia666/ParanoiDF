@@ -40,7 +40,7 @@
     Module with some misc functions
 '''
 
-import os, re, htmlentitydefs, json, urllib, urllib2
+import os, re, html, json, urllib, urllib3, html_parser
 
 def clearScreen():
 	'''
@@ -331,16 +331,16 @@ def numToHex(num, numBytes):
 	'''
     hexString = ''
     if not isinstance(num,int):
-    	return (-1,'Bad number')
+        return (-1,'Bad number')
     try:
-	    hexNumber = hex(num)[2:]
-	    if len(hexNumber) % 2 != 0:
-	        hexNumber = '0'+hexNumber
-	    for i in range(0,len(hexNumber)-1,2):
-	        hexString += chr(int(hexNumber[i]+hexNumber[i+1],16))
-	    hexString = '\0'*(numBytes-len(hexString))+hexString
+        hexNumber = hex(num)[2:]
+        if len(hexNumber) % 2 != 0:
+            hexNumber = '0'+hexNumber
+        for i in range(0,len(hexNumber)-1,2):
+            hexString += chr(int(hexNumber[i]+hexNumber[i+1],16))
+        hexString = '\0'*(numBytes-len(hexString))+hexString
     except:
-		return (-1,'Error in hexadecimal conversion')
+        return (-1,'Error in hexadecimal conversion')
     return (0,hexString)
                   		
 def numToString(num, numDigits):
@@ -376,15 +376,15 @@ def unescapeHTMLEntities(text):
             # character reference
             try:
                 if text[:3] == "&#x":
-                    return unichr(int(text[3:-1], 16))
+                    return chr(int(text[3:-1], 16))
                 else:
-                    return unichr(int(text[2:-1]))
+                    return chr(int(text[2:-1]))
             except ValueError:
                 pass
         else:
             # named entity
             try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                text = chr(html.entities.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text # leave as is
@@ -442,8 +442,8 @@ def vtcheck(md5, vtKey):
     parameters = {'resource':md5,'apikey':vtKey}
     try:
         data = urllib.urlencode(parameters)
-        req = urllib2.Request(vtUrl, data)
-        response = urllib2.urlopen(req)
+        req = urllib3.Request(vtUrl, data)
+        response = urllib3.urlopen(req)
         jsonResponse = response.read()
     except:
         return (-1, 'The request to VirusTotal has not been successful')
